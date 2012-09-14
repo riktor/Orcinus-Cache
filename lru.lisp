@@ -94,26 +94,4 @@
 		  ,empty-mask
 		  (aref mat i)))))
 
-(defun updtest ()
-  (let ((a1 (make-array 3 :element-type '(simple-bit-vector 3))))
-    #f
-    (dotimes (i 3)
-      (setf (aref a1 i) (make-array 3 :element-type 'bit)))
-    (time
-     (loop repeat 10000 do
-	(bit-and (aref a1 0) #*111 (aref a1 0))
-	(dotimes (i 3)
-	  (setf (aref (aref a1 i) 0) 0))))
-
-    (dotimes (i 3)
-      (setf (aref a1 i) (make-array 3 :element-type 'bit)))
-    (time
-     (loop repeat 10000 do
-	(dotimes (i 3)
-	  (dotimes (j 3)
-	    (setf (aref (aref a1 i) j) 1)))
-	(bit-and (aref a1 0) #*111)
-	(dotimes (i 3)
-	  (setf (aref (aref a1 i) 0) 0))))))
-
 
