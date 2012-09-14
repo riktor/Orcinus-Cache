@@ -6,8 +6,16 @@
     (with-output-to-string (s)
       (dolist (a args) (princ a s))))
 
+  (defun mkustr (&rest args)
+    (with-output-to-string (s)
+      (dolist (a args)
+	(format s "~(~a~)" a))))
+
   (defun symb (&rest args)
     (values (intern (apply #'mkstr args))))
+
+  (defun usymb (&rest args)
+    (values (intern (apply #'mkustr args))))
 
   (defun group (source n)
     (when (zerop n) (error "zero length"))
@@ -72,9 +80,9 @@
 		   `(abbrev ,@pair))
 	       (group names 2))))
 
-(abbrevs dbind  destructuring-bind
+(abbrevs db     destructuring-bind
 	 mvb    multiple-value-bind
-	 mbsetq multiple-value-setq)
+	 mvsetq multiple-value-setq)
 
 (defmacro in (obj &rest lst)
   (let ((insym (gensym)))
@@ -170,4 +178,3 @@
 ;;     (name :name
 ;;      num  :num)
 ;;   (print name))
-

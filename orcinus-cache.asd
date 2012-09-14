@@ -14,12 +14,13 @@
     :serial t
     :components ((:file "packages")
 		 (:file "util")
-		 (:file "lru")))
+		 (:file "lru")
+		 (:file "cache")))
 
 (defsystem :orcinus-cache-test
     :author "Riku Togashi <kaminari44@gmail.com>"
     :maintainer "Riku Togashi <kaminari44@gmail.com>"
-    :depends-on (:orcinus-cache :cl-test-more)
+    :depends-on (:orcinus-cache)
     :components ((:module "test"
 			  :serial t
 			  :components ((:file "packages")
