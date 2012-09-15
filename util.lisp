@@ -179,3 +179,7 @@
 ;;     (name :name
 ;;      num  :num)
 ;;   (print name))
+
+(defmacro with-gc (&body body)
+  `(let ((sb-kernel:*gc-inhibit* nil))
+     ,@body))

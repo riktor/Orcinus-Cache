@@ -75,7 +75,7 @@
      when (equal row (emsk inst))
      do (return i)))
 
-(defmacro rplcache (inst key val &key windup)
+(defmacro! rplacache (inst o!key o!val &key windup)
   `(with-slots (aval ht iht default-src-fn default-windup-fn) ,inst
      (let* ((pos (get-lu ,inst))
 	    (windup-res
@@ -83,54 +83,24 @@
 		  (with-gc
 		    (funcall (or ,windup default-windup-fn) it)))))
        (remhash (aref iht pos) ht)
-       (setf (aref iht pos) ,key
-	     (aref aval pos) (with-gc ,val)
-	     (gethash ,key ht) pos)
+       (setf (aref iht pos) ,g!key
+	     (aref aval pos) (with-gc ,g!val)
+	     (gethash ,g!key ht) pos)
        (direct-update ,inst pos)
-       (values (aref aval pos) windup-res))))
+       (values ,g!val windup-res))))
 
 (defmethod lru-get ((inst lru-cache) key &rest src-args
-		    &key windup)
+		    &key src windup)
   (sb-sys:without-gcing
       (with-slots (aval ht iht default-src-fn default-windup-fn) inst
 	(aif (gethash key ht)
 	     (multiple-value-prog1
 		 (values (aref aval it) nil)
 	       (direct-update inst it))
-	     (let* ((pos (get-lu inst))
-		    (windup-res
-		     (aif (aref aval pos)
-			  (with-gc
-			    (funcall (or windup default-windup-fn) it)))))
-	       (remhash (aref iht pos) ht)
-	       (setf (aref iht pos) key
-		     (aref aval pos) (with-gc
-				       (apply default-src-fn
-					      (cons key src-args))) 
-		     (gethash key ht) pos)
-	       (direct-update inst pos)
-	       (values (aref aval pos) windup-res))))))
+	     (rplacache inst key (apply (or src default-src-fn)
+				       (cons key src-args))
+		       :windup windup)))))
 
-(defmethod lru-get/src ((inst lru-cache) src-fn key &rest src-args
-			&key windup)
-  (sb-sys:without-gcing
-      (with-slots (aval ht iht default--fn) inst
-	(aif (gethash key ht)
-	     (prog1
-		 (values (aref aval it) nil)
-	       (direct-update inst it))
-	     (let* ((pos (get-lu inst))
-		    (windup-res
-		     (aif (aref aval pos)
-			  (with-gc
-			    (funcall (or windup default-windup-fn) it)))))
-	       (remhash (aref iht pos) ht)
-	       (setf (aref iht pos) key
-		     (aref aval pos) (with-gc
-				       (apply src-fn (cons key src-args))) 
-		     (gethash key ht) pos)
-	       (direct-update inst pos)
-	       (values (aref aval pos) windup-res))))))
 
 (defmethod lru-set ((inst lru-cache) key val &key windup)
   (sb-sys:without-gcing
@@ -139,17 +109,7 @@
 	     (prog1
 		 (values (setf (aref aval it) val) nil)
 	       (direct-update inst it))
-	     (let* ((pos (get-lu inst))
-		    (windup-res
-		     (aif (aref aval pos)
-			  (with-gc
-			    (funcall (or windup default-windup-fn) it)))))
-	       (remhash (aref iht pos) ht)
-	       (direct-update inst pos)
-	       (values (setf (aref iht pos) key
-			     (gethash key ht) pos
-			     (aref aval pos) val)
-		       windup-res))))))
+	     (rplacache inst key val :windup windup)))))
 
 (defmethod lru-rem ((inst lru-cache) key &key windup)
   (sb-sys:without-gcing
@@ -184,7 +144,7 @@
        for i fixnum from 0 below size
        collect (aif (aref aval i)
 		    (with-gc
-		      (funcall (or windup default-windup-fn) it)))
+		      (funcall windup-fn it)))
        do
 	 (setf (aref aval i) nil
 	       (aref iht i) nil)
