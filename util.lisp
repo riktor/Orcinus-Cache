@@ -174,6 +174,7 @@
 			   (error ,(mkstr kwd " must be specified.")))))
      ,@body))
 
+
 ;; (require-params '(:name "Bob" :num 2)
 ;;     (name :name
 ;;      num  :num)
