@@ -135,20 +135,21 @@
 		      (aref mat i))))))
 
 (defmethod lru-clr ((inst lru-cache) &key windup)
-  (with-slots (size emsk mat aval ht iht default-windup-fn) inst
-    (loop
-       for key being the hash-keys in ht
-       do (remhash key ht))
-    (loop
-       with windup-fn = (or windup default-windup-fn)
-       for i fixnum from 0 below size
-       collect (aif (aref aval i)
-		    (with-gc
-		      (funcall windup-fn it)))
-       do
-	 (setf (aref aval i) nil
-	       (aref iht i) nil)
-	 (bit-and (aref mat i)
-		  emsk
-		  (aref mat i)))))
+  (sb-sys:without-gcing
+      (with-slots (size emsk mat aval ht iht default-windup-fn) inst
+	(loop
+	   for key being the hash-keys in ht
+	   do (remhash key ht))
+	(loop
+	   with windup-fn = (or windup default-windup-fn)
+	   for i fixnum from 0 below size
+	   collect (aif (aref aval i)
+			(with-gc
+			    (funcall windup-fn it)))
+	   do
+	     (setf (aref aval i) nil
+		   (aref iht i) nil)
+	     (bit-and (aref mat i)
+		      emsk
+		      (aref mat i))))))
 
