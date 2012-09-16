@@ -98,7 +98,7 @@
 		 (values (aref aval it) nil)
 	       (direct-update inst it))
 	     (rplacache inst key (apply (or src default-src-fn)
-				       (cons key src-args))
+					(cons key src-args))
 		       :windup windup)))))
 
 
@@ -106,7 +106,7 @@
   (sb-sys:without-gcing
       (with-slots (aval mat ht iht default-windup-fn) inst
 	(aif (gethash key ht)
-	     (prog1
+	     (multiple-value-prog1
 		 (values (setf (aref aval it) val) nil)
 	       (direct-update inst it))
 	     (rplacache inst key val :windup windup)))))
